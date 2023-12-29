@@ -1,39 +1,34 @@
-from vk_api import VkApi
-import config
-from post import wait_for_posts
+import asyncio
+import logging
+from aiogram import Bot, Dispatcher, types
+from aiogram.types import ParseMode
+from vk import main_vk, config
+
+cfg = config.load()
+
+API_TOKEN = cfg['tg_token']
+
+logging.basicConfig(level=logging.INFO)
+
+bot = Bot(token=API_TOKEN)
+dp = Dispatcher(bot)
 
 
-def main():
-    cfg = config.load()
+@dp.message_handler(commands=['start'])
+async def cmd_start(message: types.Message):
+    await message.answer("hi")
 
-    group_ids = cfg['group_ids']
-    access_token = cfg['token']
-    delay = cfg['delay']
 
-    vk_session = VkApi(token=access_token)
-    api = vk_session.get_api()
+@dp.message_handler()
+async def echo(message: types.Message):
+    await message.answer(message.text, parse_mode=ParseMode.MARKDOWN)
 
-    row = {}
 
-    for group_id in group_ids:
-        group_id = -group_id if group_id > 0 else group_id
-        wall = api.wall.get(owner_id=group_id, filter='all', extended=1, count=1)
+async def main():
+    vk_task = asyncio.create_task(main_vk.run_vk(cfg))
 
-        try:
-            row.update({group_id: wall['items'][0]['id']})
-        except IndexError:
-            print('Error: Возможно в группе', group_id, 'нет постов')
-
-    print('Бот ждёт постов...')
-
-    try:
-        wait_for_posts(api, row, delay)
-    except KeyboardInterrupt:
-        exit(0)
-
+    await dp.start_polling()
+    await vk_task
 
 if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt:
-        exit(0)
+    asyncio.run(main())

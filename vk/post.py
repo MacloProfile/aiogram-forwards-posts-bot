@@ -1,7 +1,7 @@
-from time import sleep
+import asyncio
 
 
-def wait_for_posts(api, row, delay):
+async def wait_for_posts(api, row, delay):
     while True:
         for group_id, latest_post_id in row.items():
             wall = api.wall.get(owner_id=group_id, filter='all', extended=1, count=1)
@@ -27,4 +27,4 @@ def wait_for_posts(api, row, delay):
 
                 print()
 
-        sleep(delay)
+        await asyncio.sleep(delay)
