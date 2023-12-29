@@ -1,31 +1,39 @@
-import json
-import logging
-from aiogram import Bot, Dispatcher, types
-from aiogram.types import ParseMode
-from aiogram.utils import executor
-
-logging.basicConfig(level=logging.INFO)
-
-with open('config.json', 'r') as config_file:
-    config = json.load(config_file)
-BOT_TOKEN = config.get('token')
-
-if BOT_TOKEN is None:
-    raise ValueError("Токен не найден в файле config.json")
-
-bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher(bot)
+from vk_api import VkApi
+import config
+from post import wait_for_posts
 
 
-@dp.message_handler(commands=['start'])
-async def start_command(message: types.Message):
-    await message.reply("Привет! Я эхо-бот. Отправь мне что-нибудь, и я повторю.")
+def main():
+    cfg = config.load()
 
+    group_ids = cfg['group_ids']
+    access_token = cfg['token']
+    delay = cfg['delay']
 
-@dp.message_handler()
-async def echo_message(message: types.Message):
-    await message.reply(message.text)
+    vk_session = VkApi(token=access_token)
+    api = vk_session.get_api()
+
+    row = {}
+
+    for group_id in group_ids:
+        group_id = -group_id if group_id > 0 else group_id
+        wall = api.wall.get(owner_id=group_id, filter='all', extended=1, count=1)
+
+        try:
+            row.update({group_id: wall['items'][0]['id']})
+        except IndexError:
+            print('Error: Возможно в группе', group_id, 'нет постов')
+
+    print('Бот ждёт постов...')
+
+    try:
+        wait_for_posts(api, row, delay)
+    except KeyboardInterrupt:
+        exit(0)
+
 
 if __name__ == '__main__':
-    from aiogram import executor
-    executor.start_polling(dp, skip_updates=True)
+    try:
+        main()
+    except KeyboardInterrupt:
+        exit(0)
