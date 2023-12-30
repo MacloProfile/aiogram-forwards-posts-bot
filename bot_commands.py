@@ -12,6 +12,12 @@ async def cmd_add(dp, message, cfg):
     first = int(text_after_command[0])
     second = int(text_after_command[1])
 
+    # unique pair
+    channel_pair_exists = await dp['db'].check_channel_pair_exists(second, first)
+    if channel_pair_exists:
+        print("Values already exist in the database")
+        return
+
     if current_vk_task:
         current_vk_task.cancel()
 

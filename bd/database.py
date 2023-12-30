@@ -41,3 +41,7 @@ class Database:
         results = await self.conn.fetch(query, tg_channel)
         return [result['vk_channel'] for result in results]
 
+    async def check_channel_pair_exists(self, tg_channel_id, vk_channel_id):
+        query = "SELECT COUNT(*) FROM channels WHERE tg_channel = $1 AND vk_channel = $2"
+        count = await self.conn.fetchval(query, tg_channel_id, vk_channel_id)
+        return count > 0
