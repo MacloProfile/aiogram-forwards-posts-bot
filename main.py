@@ -7,10 +7,9 @@ from vk import main_vk, config
 
 cfg = config.load()
 
-API_TOKEN = cfg['tg_token']
+current_vk_task = None
 
-# # channels VK - TELEGRAM
-# group_channel = {}
+API_TOKEN = cfg['tg_token']
 
 # Данные для подключения к базе данных PostgreSQL
 DB_CONFIG = {
@@ -52,6 +51,11 @@ async def is_valid_channel_id(channel_id):
 
 @dp.message_handler(commands=['add'])
 async def cmd_start(message: types.Message):
+    global current_vk_task
+
+    if current_vk_task:
+        current_vk_task.cancel()
+
     text_after_command = message.get_args().split(" ")
     first = int(text_after_command[0])
     second = int(text_after_command[1])
@@ -64,8 +68,8 @@ async def cmd_start(message: types.Message):
 
     vk_channels = await dp['db'].take_vk(tg_channel)
 
-    vk_task = asyncio.create_task(main_vk.run_vk(cfg, vk_channels, tg_channel))
-    await vk_task
+    current_vk_task = asyncio.create_task(main_vk.run_vk(cfg, vk_channels, tg_channel))
+    await current_vk_task
 
 
 async def main():
