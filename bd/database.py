@@ -27,7 +27,7 @@ class Database:
     async def save_channel_to_db(self, channel_id, tg_channel):
         async with self.pool.acquire() as conn:
             await conn.execute(
-                "INSERT INTO channels (tg_channel, vk_channel) VALUES ($1::bigint, $2::bigint) ON CONFLICT (tg_channel) DO UPDATE SET vk_channel = EXCLUDED.vk_channel;",
+                "INSERT INTO channels (tg_channel, vk_channel) VALUES ($1::bigint, $2::bigint);",
                 tg_channel, channel_id,
             )
 
