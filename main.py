@@ -1,8 +1,10 @@
 import asyncio
 import logging
 from aiogram import Bot, Dispatcher, types
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 import bd.bd_config
+import commands.buttons
 from bd.database import Database
 from commands.add_vk_token import cmd_token
 from commands.forward_from_vk import cmd_add
@@ -19,19 +21,42 @@ dp = Dispatcher(bot)
 database = Database(None)
 
 
+def reply_keyboard():
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard.add(KeyboardButton('🍂 Help'), KeyboardButton('🏝 Info'), KeyboardButton('🌾 Profile'))
+    return keyboard
+
+
 @dp.message_handler(commands=['start'])
 async def cmd_start(message: types.Message):
     # added user id to BD
     user_id = message.from_user.id
     await dp['db'].save_user_to_db(user_id)
 
-    await message.answer("Hi")
+    keyboard = reply_keyboard()
+
+    await message.answer("Hi", reply_markup=keyboard)
 
 
+@dp.message_handler(text=['🌾 Profile'], state="*")
+@dp.message_handler(commands=['profile'])
+async def cmd_start(message: types.Message):
+    text = commands.buttons.text_profile(message.from_user.id)
+    await message.answer(text)
+
+
+@dp.message_handler(text=['🍂 Help'], state="*")
+@dp.message_handler(commands=['get_users'])
+async def cmd_start(message: types.Message):
+    text = commands.buttons.text_help()
+    await message.answer(text)
+
+
+@dp.message_handler(text=['🏝 Info'], state="*")
 @dp.message_handler(commands=['get_users'])
 async def cmd_start(message: types.Message):
     users = await dp['db'].get_all_users()
-    await message.answer(users)
+    await message.answer("Users: " + str(users))
 
 
 @dp.message_handler(commands=['token'])
