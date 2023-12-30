@@ -20,7 +20,18 @@ database = Database(None)
 
 @dp.message_handler(commands=['start'])
 async def cmd_start(message: types.Message):
-    await message.answer("hi")
+    # added user id to BD
+    user_id = message.from_user.id
+    await dp['db'].save_user_to_db(user_id)
+
+    await message.answer("Hi")
+
+
+@dp.message_handler(commands=['get_users'])
+async def cmd_start(message: types.Message):
+    users = await dp['db'].get_all_users()
+    await message.answer(users)
+
 
 
 async def on_startup(dp):

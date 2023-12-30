@@ -1,5 +1,6 @@
 import asyncio
 
+
 current_vk_task = None
 
 
@@ -21,9 +22,8 @@ async def cmd_add(dp, message, cfg):
     if current_vk_task:
         current_vk_task.cancel()
 
-    if first != second:
-        await dp['db'].save_channel_to_db(first, second)
-        print("Data saved to the database")
+    await dp['db'].save_channel_to_db(first, second)
+    print("Data saved to the database")
 
     tg_channel = (await dp['db'].take_tg())
     vk_channels = await dp['db'].take_vk(tg_channel)

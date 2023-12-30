@@ -17,13 +17,6 @@ class Database:
         )
         self.conn = await self.pool.acquire()
 
-    async def is_valid_channel_id(self, channel_id, bot):
-        try:
-            chat_info = await bot.get_chat(chat_id=channel_id)
-            return chat_info.type == types.ChatType.CHANNEL
-        except Exception as e:
-            return False
-
     async def save_channel_to_db(self, channel_id, tg_channel):
         async with self.pool.acquire() as conn:
             await conn.execute(
@@ -45,3 +38,15 @@ class Database:
         query = "SELECT COUNT(*) FROM channels WHERE tg_channel = $1 AND vk_channel = $2"
         count = await self.conn.fetchval(query, tg_channel_id, vk_channel_id)
         return count > 0
+
+    async def save_user_to_db(self, user_id):
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                "INSERT INTO users (user_id) VALUES ($1::bigint) ON CONFLICT (user_id) DO NOTHING;",
+                user_id,
+            )
+
+    async def get_all_users(self):
+        query = "SELECT * FROM users"
+        results = await self.conn.fetch(query)
+        return len(results)
