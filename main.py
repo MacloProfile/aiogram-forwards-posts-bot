@@ -60,12 +60,11 @@ async def cmd_start(message: types.Message):
         await dp['db'].save_channel_to_db(first, second)
         print("Data saved to the database")
 
-    group_channel = (await dp['db'].take_group())[0]
-    print("All group channels:", group_channel)
+    tg_channel = (await dp['db'].take_tg())
 
-    tg_channel = await dp['db'].take_channel(group_channel)
+    vk_channels = await dp['db'].take_vk(tg_channel)
 
-    vk_task = asyncio.create_task(main_vk.run_vk(cfg, group_channel, tg_channel))
+    vk_task = asyncio.create_task(main_vk.run_vk(cfg, vk_channels, tg_channel))
     await vk_task
 
 

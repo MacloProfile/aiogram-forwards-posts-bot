@@ -27,16 +27,17 @@ class Database:
     async def save_channel_to_db(self, channel_id, tg_channel):
         async with self.pool.acquire() as conn:
             await conn.execute(
-                "INSERT INTO channels (vk_channel, tg_channel) VALUES ($1::bigint, $2::bigint) ON CONFLICT (vk_channel) DO UPDATE SET tg_channel = EXCLUDED.tg_channel;",
-                channel_id, tg_channel,
+                "INSERT INTO channels (tg_channel, vk_channel) VALUES ($1::bigint, $2::bigint) ON CONFLICT (tg_channel) DO UPDATE SET vk_channel = EXCLUDED.vk_channel;",
+                tg_channel, channel_id,
             )
 
-    async def take_group(self):
-        query = "SELECT vk_channel FROM channels"
-        groups = await self.conn.fetch(query)
-        return [group['vk_channel'] for group in groups]
-
-    async def take_channel(self, vk_channel):
-        query = "SELECT tg_channel FROM channels WHERE vk_channel = $1"
-        result = await self.conn.fetchval(query, vk_channel)
+    async def take_tg(self):
+        query = "SELECT tg_channel FROM channels"
+        result = await self.conn.fetchval(query)
         return result
+
+    async def take_vk(self, tg_channel):
+        query = "SELECT vk_channel FROM channels WHERE tg_channel = $1"
+        results = await self.conn.fetch(query, tg_channel)
+        return [result['vk_channel'] for result in results]
+

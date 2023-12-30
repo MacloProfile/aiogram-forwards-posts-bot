@@ -1,19 +1,16 @@
 from vk_api import VkApi
-
 import tg.posting
 from vk.post import wait_for_posts
-from main import dp
 
 
-async def run_vk(cfg, group_channel, tg_channel):
+async def run_vk(cfg, vk_channels, tg_channel):
     try:
-        await main(cfg, group_channel, tg_channel)
+        await main(cfg, vk_channels, tg_channel)
     except KeyboardInterrupt:
         pass
 
 
-async def main(cfg, group_channel, tg_channel):
-    group_ids = [group_channel]
+async def main(cfg, vk_channels, tg_channel):
 
     access_token = cfg['vk_token']
     delay = cfg['vk_delay']
@@ -23,8 +20,9 @@ async def main(cfg, group_channel, tg_channel):
 
     row = {}
 
-    for group_id in group_ids:
-        group_id = int(group_id)
+    for group_id in vk_channels:
+        print(group_id)
+
         group_id = -group_id if group_id > 0 else group_id
         wall = api.wall.get(owner_id=group_id, filter='all', extended=1, count=1)
 
