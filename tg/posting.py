@@ -1,7 +1,8 @@
-from main import bot, CHANNEL_ID
+from main import bot
 
 
-async def cmd_post(post):
+async def cmd_post(post, CHANNEL_ID):
+
     text = post.get('text', '')
     photo_url = None
 

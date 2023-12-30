@@ -4,15 +4,16 @@ import tg.posting
 from vk.post import wait_for_posts
 
 
-async def run_vk(cfg):
+async def run_vk(cfg, group_channel):
     try:
-        await main(cfg)
+        await main(cfg, group_channel)
     except KeyboardInterrupt:
         pass
 
 
-async def main(cfg):
-    group_ids = cfg['vk_group_ids']
+async def main(cfg, group_channel):
+    group_ids = group_channel.keys()
+
     access_token = cfg['vk_token']
     delay = cfg['vk_delay']
 
@@ -22,6 +23,7 @@ async def main(cfg):
     row = {}
 
     for group_id in group_ids:
+        group_id = int(group_id)
         group_id = -group_id if group_id > 0 else group_id
         wall = api.wall.get(owner_id=group_id, filter='all', extended=1, count=1)
 
@@ -36,7 +38,7 @@ async def main(cfg):
         while True:
             text_post = await wait_for_posts(api, row, delay)
             if text_post is not None:
-                await tg.posting.cmd_post(text_post)
+                await tg.posting.cmd_post(text_post, int(group_channel[str(group_id)[1:]]))
 
     except KeyboardInterrupt:
         exit(0)
