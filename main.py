@@ -4,8 +4,9 @@ from aiogram import Bot, Dispatcher, types
 
 import bd.bd_config
 from bd.database import Database
-from bot_commands import cmd_add
-from vk import main_vk, config
+from commands.add_vk_token import cmd_token
+from commands.forward_from_vk import cmd_add
+from vk import config
 
 cfg = config.load()
 
@@ -33,6 +34,16 @@ async def cmd_start(message: types.Message):
     await message.answer(users)
 
 
+@dp.message_handler(commands=['token'])
+async def cmd_token_wrapper(message: types.Message):
+    text = await cmd_token(dp, message)
+    await message.answer(text)
+
+
+@dp.message_handler(commands=['add'])
+async def cmd_add_wrapper(message: types.Message):
+    await cmd_add(dp, message, cfg)
+
 
 async def on_startup(dp):
     await database.create_pool(bd.bd_config.DB_CONFIG)
@@ -41,11 +52,6 @@ async def on_startup(dp):
 
 async def on_shutdown(dp):
     await dp['db'].pool.close()
-
-
-@dp.message_handler(commands=['add'])
-async def cmd_add_wrapper(message: types.Message):
-    await cmd_add(dp, message, cfg)
 
 
 async def main():

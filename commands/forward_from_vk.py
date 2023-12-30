@@ -1,6 +1,5 @@
 import asyncio
 
-
 current_vk_task = None
 
 

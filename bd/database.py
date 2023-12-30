@@ -50,3 +50,11 @@ class Database:
         query = "SELECT * FROM users"
         results = await self.conn.fetch(query)
         return len(results)
+
+    async def save_vk_token(self, user_id, token):
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                "INSERT INTO tokens (user_id, token) VALUES ($1::bigint, $2::varchar) ON CONFLICT (user_id) DO UPDATE SET token = EXCLUDED.token RETURNING id;",
+                user_id, token,
+            )
+
