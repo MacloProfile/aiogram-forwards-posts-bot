@@ -1,4 +1,6 @@
 from vk_api import VkApi
+
+import tg.posting
 from vk.post import wait_for_posts
 
 
@@ -31,6 +33,10 @@ async def main(cfg):
     print('Бот ждёт постов...')
 
     try:
-        await wait_for_posts(api, row, delay)
+        while True:
+            text_post = await wait_for_posts(api, row, delay)
+            if text_post is not None:
+                await tg.posting.cmd_post(text_post)
+
     except KeyboardInterrupt:
         exit(0)

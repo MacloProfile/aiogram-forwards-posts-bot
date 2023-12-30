@@ -1,12 +1,12 @@
 import asyncio
 import logging
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import ParseMode
 from vk import main_vk, config
 
 cfg = config.load()
 
 API_TOKEN = cfg['tg_token']
+CHANNEL_ID = '-1001922351197'
 
 logging.basicConfig(level=logging.INFO)
 
@@ -17,11 +17,6 @@ dp = Dispatcher(bot)
 @dp.message_handler(commands=['start'])
 async def cmd_start(message: types.Message):
     await message.answer("hi")
-
-
-@dp.message_handler()
-async def echo(message: types.Message):
-    await message.answer(message.text, parse_mode=ParseMode.MARKDOWN)
 
 
 async def main():

@@ -2,7 +2,7 @@ import asyncio
 
 
 async def wait_for_posts(api, row, delay):
-    while True:
+    for i in range(1):
         for group_id, latest_post_id in row.items():
             wall = api.wall.get(owner_id=group_id, filter='all', extended=1, count=1)
             post = wall['items'][0] if wall['items'] else None
@@ -17,14 +17,6 @@ async def wait_for_posts(api, row, delay):
             if post and post['id'] > latest_post_id:
                 row.update({group_id: post['id']})
                 print("Новый пост в группе", group_id)
-                print("Текст поста:", post['text'])
-                if 'attachments' in post:
-                    for attachment in post['attachments']:
-                        if attachment['type'] == 'photo':
-                            photo_sizes = attachment['photo']['sizes']
-                            photo_url = photo_sizes[-1]['url']
-                            print("Фотография:", photo_url)
-
-                print()
+                return post
 
         await asyncio.sleep(delay)
