@@ -2,23 +2,14 @@ import asyncio
 import logging
 from aiogram import Bot, Dispatcher, types
 
+import bd.bd_config
 from bd.database import Database
+from bot_commands import cmd_add
 from vk import main_vk, config
 
 cfg = config.load()
 
-current_vk_task = None
-
 API_TOKEN = cfg['tg_token']
-
-# Данные для подключения к базе данных PostgreSQL
-DB_CONFIG = {
-    'host': 'localhost',
-    'port': 5432,
-    'user': 'postgres',
-    'password': 'admin',
-    'database': 'bot',
-}
 
 logging.basicConfig(level=logging.INFO)
 
@@ -27,8 +18,13 @@ dp = Dispatcher(bot)
 database = Database(None)
 
 
+@dp.message_handler(commands=['start'])
+async def cmd_start(message: types.Message):
+    await message.answer("hi")
+
+
 async def on_startup(dp):
-    await database.create_pool(DB_CONFIG)
+    await database.create_pool(bd.bd_config.DB_CONFIG)
     dp['db'] = database
 
 
@@ -36,40 +32,9 @@ async def on_shutdown(dp):
     await dp['db'].pool.close()
 
 
-@dp.message_handler(commands=['start'])
-async def cmd_start(message: types.Message):
-    await message.answer("hi")
-
-
-async def is_valid_channel_id(channel_id):
-    try:
-        chat_info = await bot.get_chat(chat_id=channel_id)
-        return chat_info.type == types.ChatType.CHANNEL
-    except Exception as e:
-        return False
-
-
 @dp.message_handler(commands=['add'])
-async def cmd_start(message: types.Message):
-    global current_vk_task
-
-    if current_vk_task:
-        current_vk_task.cancel()
-
-    text_after_command = message.get_args().split(" ")
-    first = int(text_after_command[0])
-    second = int(text_after_command[1])
-
-    if first != second:
-        await dp['db'].save_channel_to_db(first, second)
-        print("Data saved to the database")
-
-    tg_channel = (await dp['db'].take_tg())
-
-    vk_channels = await dp['db'].take_vk(tg_channel)
-
-    current_vk_task = asyncio.create_task(main_vk.run_vk(cfg, vk_channels, tg_channel))
-    await current_vk_task
+async def cmd_add_wrapper(message: types.Message):
+    await cmd_add(dp, message, cfg)
 
 
 async def main():
