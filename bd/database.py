@@ -58,3 +58,7 @@ class Database:
                 user_id, token,
             )
 
+    async def get_vk_token(self, user_id):
+        query = "SELECT token FROM tokens WHERE user_id = $1"
+        result = await self.conn.fetchval(query, user_id)
+        return result

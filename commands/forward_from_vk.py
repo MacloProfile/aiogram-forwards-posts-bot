@@ -3,8 +3,9 @@ import asyncio
 current_vk_task = None
 
 
-async def cmd_add(dp, message, cfg):
+async def cmd_add(dp, message, user_id):
     from vk import main_vk
+    from existing import is_valid_telegram_channel
 
     global current_vk_task
 
@@ -15,9 +16,9 @@ async def cmd_add(dp, message, cfg):
     # unique pair
     channel_pair_exists = await dp['db'].check_channel_pair_exists(second, first)
     if channel_pair_exists:
-        print("Values already exist in the database")
-        return
+        return "Values already exist in the database"
 
+    # cancel previous cycle
     if current_vk_task:
         current_vk_task.cancel()
 
@@ -27,5 +28,6 @@ async def cmd_add(dp, message, cfg):
     tg_channel = (await dp['db'].take_tg())
     vk_channels = await dp['db'].take_vk(tg_channel)
 
-    current_vk_task = asyncio.create_task(main_vk.run_vk(cfg, vk_channels, tg_channel))
+    current_vk_task = asyncio.create_task(main_vk.run_vk(dp, user_id, vk_channels, tg_channel))
     await current_vk_task
+    return "great!"

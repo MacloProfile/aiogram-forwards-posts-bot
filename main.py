@@ -42,7 +42,8 @@ async def cmd_token_wrapper(message: types.Message):
 
 @dp.message_handler(commands=['add'])
 async def cmd_add_wrapper(message: types.Message):
-    await cmd_add(dp, message, cfg)
+    text = await cmd_add(dp, message, message.from_user.id)
+    await message.answer(text)
 
 
 async def on_startup(dp):

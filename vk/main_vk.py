@@ -3,17 +3,20 @@ import tg.posting
 from vk.post import wait_for_posts
 
 
-async def run_vk(cfg, vk_channels, tg_channel):
+async def run_vk(dp, user_id, vk_channels, tg_channel):
     try:
-        await main(cfg, vk_channels, tg_channel)
+        await main(dp, user_id, vk_channels, tg_channel)
     except KeyboardInterrupt:
         pass
 
 
-async def main(cfg, vk_channels, tg_channel):
-
-    access_token = cfg['vk_token']
-    delay = cfg['vk_delay']
+async def main(dp, user_id, vk_channels, tg_channel):
+    db_token = await dp['db'].get_vk_token(user_id)
+    if db_token:
+        access_token = db_token
+    else:
+        print("Токен ВК не найден в базе данных.")
+        return
 
     vk_session = VkApi(token=access_token)
     api = vk_session.get_api()
@@ -35,7 +38,7 @@ async def main(cfg, vk_channels, tg_channel):
 
     try:
         while True:
-            text_post = await wait_for_posts(api, row, delay)
+            text_post = await wait_for_posts(api, row, 3)
             if text_post is not None:
                 await tg.posting.cmd_post(text_post, int(tg_channel))
 
