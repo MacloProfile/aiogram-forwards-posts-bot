@@ -1,5 +1,5 @@
 import asyncpg
-from aiogram import types
+from bd.create_tables import create_tables
 
 
 class Database:
@@ -16,11 +16,12 @@ class Database:
             database=config['database'],
         )
         self.conn = await self.pool.acquire()
+        await create_tables(self.pool)
 
     async def save_channel_to_db(self, channel_id, tg_channel):
         async with self.pool.acquire() as conn:
             await conn.execute(
-                "INSERT INTO channels (tg_channel, vk_channel) VALUES ($1::bigint, $2::bigint);",
+                "INSERT INTO channels (tg_channel, vk_channel) VALUES ($1::bigint, $2::bigint) ",
                 tg_channel, channel_id,
             )
 
@@ -54,7 +55,8 @@ class Database:
     async def save_vk_token(self, user_id, token):
         async with self.pool.acquire() as conn:
             await conn.execute(
-                "INSERT INTO tokens (user_id, token) VALUES ($1::bigint, $2::varchar) ON CONFLICT (user_id) DO UPDATE SET token = EXCLUDED.token RETURNING id;",
+                "INSERT INTO tokens (user_id, token) VALUES ($1::bigint, $2::varchar) ON CONFLICT (user_id) DO UPDATE "
+                "SET token = EXCLUDED.token RETURNING id;",
                 user_id, token,
             )
 
