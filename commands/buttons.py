@@ -1,3 +1,6 @@
+import commands.forward_from_vk
+
+
 def text_help():
     text = "/add 'vk_id' 'tg_id' - добавить пересылку из группы вк в тг канал\n"\
            + "/token 'kate mobile token' - токен вк аккаунта из kate mobile\n"\
@@ -8,3 +11,13 @@ def text_help():
 def text_profile(id):
     text = "Your Id: " + str(id)
     return text
+
+
+async def restart(dp, user_id):
+    tg_channel = await dp['db'].take_tg()
+    vk_channels = await dp['db'].take_vk(tg_channel)
+    try:
+        await commands.forward_from_vk.restart_vk_task(dp, user_id, vk_channels, tg_channel)
+    except Exception as e:
+        return "error"
+    return "Success!"

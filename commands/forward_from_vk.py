@@ -3,11 +3,18 @@ import asyncio
 current_vk_task = None
 
 
-async def cmd_add(dp, message, user_id):
+async def restart_vk_task(dp, user_id, vk_channels, tg_channel):
     from vk import main_vk
-    from existing import is_valid_telegram_channel
-
     global current_vk_task
+
+    if current_vk_task:
+        current_vk_task.cancel()
+
+    current_vk_task = asyncio.create_task(main_vk.run_vk(dp, user_id, vk_channels, tg_channel))
+    return current_vk_task
+
+
+async def cmd_add(dp, message, user_id):
 
     text_after_command = message.get_args().split(" ")
     first = int(text_after_command[0])
@@ -18,16 +25,9 @@ async def cmd_add(dp, message, user_id):
     if channel_pair_exists:
         return "Values already exist in the database"
 
-    # cancel previous cycle
-    if current_vk_task:
-        current_vk_task.cancel()
-
-    await dp['db'].save_channel_to_db(first, second)
-    print("Data saved to the database")
-
-    tg_channel = (await dp['db'].take_tg())
+    tg_channel = await dp['db'].take_tg()
     vk_channels = await dp['db'].take_vk(tg_channel)
 
-    current_vk_task = asyncio.create_task(main_vk.run_vk(dp, user_id, vk_channels, tg_channel))
-    await current_vk_task
-    return "great!"
+    # Restart the task with new parameters
+    await restart_vk_task(dp, user_id, vk_channels, tg_channel)
+    return "Great!"

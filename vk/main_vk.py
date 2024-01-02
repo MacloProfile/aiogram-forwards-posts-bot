@@ -38,7 +38,7 @@ async def main(dp, user_id, vk_channels, tg_channel):
 
     try:
         while True:
-            text_post = await wait_for_posts(api, row, 3)
+            text_post = await wait_for_posts(api, row, 10)
             if text_post is not None:
                 await tg.posting.cmd_post(text_post, int(tg_channel))
 

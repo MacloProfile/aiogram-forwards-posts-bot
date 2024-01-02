@@ -4,7 +4,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 import bd.bd_config
-import commands.buttons
+from commands.buttons import text_profile, text_help, restart
 from bd.database import Database
 from commands.add_vk_token import cmd_token
 from commands.forward_from_vk import cmd_add
@@ -41,14 +41,14 @@ async def cmd_start(message: types.Message):
 @dp.message_handler(text=['🌾 Profile'], state="*")
 @dp.message_handler(commands=['profile'])
 async def cmd_start(message: types.Message):
-    text = commands.buttons.text_profile(message.from_user.id)
+    text = text_profile(message.from_user.id)
     await message.answer(text)
 
 
 @dp.message_handler(text=['🍂 Help'], state="*")
 @dp.message_handler(commands=['get_users'])
 async def cmd_start(message: types.Message):
-    text = commands.buttons.text_help()
+    text = text_help()
     await message.answer(text)
 
 
@@ -68,6 +68,12 @@ async def cmd_token_wrapper(message: types.Message):
 @dp.message_handler(commands=['add'])
 async def cmd_add_wrapper(message: types.Message):
     text = await cmd_add(dp, message, message.from_user.id)
+    await message.answer(text)
+
+
+@dp.message_handler(commands=['restart'])
+async def cmd_add_wrapper(message: types.Message):
+    text = await restart(dp, message.from_user.id)
     await message.answer(text)
 
 
