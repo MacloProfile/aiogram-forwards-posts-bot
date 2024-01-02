@@ -1,16 +1,15 @@
 from vk_api import VkApi
-import tg.posting
 from vk.post import wait_for_posts
 
 
-async def run_vk(dp, user_id, vk_channels, tg_channel):
+async def run_vk(dp, user_id, vk_channels):
     try:
-        await main(dp, user_id, vk_channels, tg_channel)
+        await main(dp, user_id, vk_channels)
     except KeyboardInterrupt:
         pass
 
 
-async def main(dp, user_id, vk_channels, tg_channel):
+async def main(dp, user_id, vk_channels):
     db_token = await dp['db'].get_vk_token(user_id)
     if db_token:
         access_token = db_token
@@ -38,9 +37,7 @@ async def main(dp, user_id, vk_channels, tg_channel):
 
     try:
         while True:
-            text_post = await wait_for_posts(api, row, 10)
-            if text_post is not None:
-                await tg.posting.cmd_post(text_post, int(tg_channel))
+            await wait_for_posts(api, row, 3, dp)
 
     except KeyboardInterrupt:
         exit(0)

@@ -14,10 +14,10 @@ def text_profile(id):
 
 
 async def restart(dp, user_id):
-    tg_channel = await dp['db'].take_tg()
-    vk_channels = await dp['db'].take_vk(tg_channel)
+    tg_channel = await dp['db'].take_tg(user_id)
+    vk_channels = await dp['db'].take_vk(user_id)
     try:
-        await commands.forward_from_vk.restart_vk_task(dp, user_id, vk_channels, tg_channel)
+        await commands.forward_from_vk.restart_vk_task(dp, user_id, vk_channels)
     except Exception as e:
         return "error"
     return "Success!"
