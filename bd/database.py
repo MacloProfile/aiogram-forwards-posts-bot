@@ -18,22 +18,27 @@ class Database:
         self.conn = await self.pool.acquire()
         await create_tables(self.pool)
 
-    async def save_channel_to_db(self, channel_id, tg_channel):
+    async def save_channel_to_db(self, channel_id, tg_channel, user_id):
         async with self.pool.acquire() as conn:
             await conn.execute(
-                "INSERT INTO channels (tg_channel, vk_channel) VALUES ($1::bigint, $2::bigint) ",
-                tg_channel, channel_id,
+                "INSERT INTO channels (tg_channel, vk_channel, user_id) VALUES ($1::bigint, $2::bigint, $3::bigint) ",
+                tg_channel, channel_id, user_id
             )
 
-    async def take_tg(self):
-        query = "SELECT tg_channel FROM channels"
-        result = await self.conn.fetchval(query)
-        return result
+    async def take_tg(self, user_id):
+        query = "SELECT tg_channel FROM channels WHERE user_id = $1"
+        results = await self.conn.fetch(query, user_id)
+        return [result['tg_channel'] for result in results]
 
-    async def take_vk(self, tg_channel):
-        query = "SELECT vk_channel FROM channels WHERE tg_channel = $1"
-        results = await self.conn.fetch(query, tg_channel)
+    async def take_vk(self, user_id):
+        query = "SELECT vk_channel FROM channels WHERE user_id = $1"
+        results = await self.conn.fetch(query, user_id)
         return [result['vk_channel'] for result in results]
+
+    async def take_tg_by_vk(self, vk_channel):
+        query = "SELECT tg_channel FROM channels WHERE vk_channel = $1"
+        results = await self.conn.fetch(query, vk_channel)
+        return [result['tg_channel'] for result in results]
 
     async def check_channel_pair_exists(self, tg_channel_id, vk_channel_id):
         query = "SELECT COUNT(*) FROM channels WHERE tg_channel = $1 AND vk_channel = $2"

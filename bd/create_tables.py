@@ -8,7 +8,8 @@ async def create_tables(pool):
         CREATE TABLE IF NOT EXISTS channels (
             id serial PRIMARY KEY,
             tg_channel bigint,
-            vk_channel bigint
+            vk_channel bigint,
+            user_id bigint
         );
     ''')
 
