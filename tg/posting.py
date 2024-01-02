@@ -6,7 +6,7 @@ import os
 async def cmd_post(post, CHANNEL_ID):
     try:
         text = post.get('text', '')
-        photo_url = None
+        media_group = []
         video_url = None
 
         if 'attachments' in post:
@@ -14,18 +14,22 @@ async def cmd_post(post, CHANNEL_ID):
                 if attachment['type'] == 'photo':
                     photo_sizes = attachment['photo']['sizes']
                     photo_url = photo_sizes[-1]['url']
+                    media_group.append({'type': 'photo', 'media': photo_url})
 
                 elif attachment['type'] == 'video':
                     owner_id = post['attachments'][0]['video']['owner_id']
                     video_id = post['attachments'][0]['video']['id']
                     video_url = f"https://vk.com/video{owner_id}_{video_id}"
 
-        if photo_url:
-            await bot.send_photo(chat_id=CHANNEL_ID, photo=photo_url, caption=text)
-        elif video_url is not None:
+        if video_url is not None:
             await send_video(CHANNEL_ID, video_url, text)
+        elif media_group:
+            media_group_input = [{'type': 'photo', 'media': media['media']} for media in media_group]
+            await bot.send_media_group(chat_id=CHANNEL_ID, media=media_group_input)
+            if text:
+                await bot.send_message(chat_id=CHANNEL_ID, text=text, parse_mode="Markdown")
         elif text:
-            await bot.send_message(chat_id=CHANNEL_ID, text=text)
+            await bot.send_message(chat_id=CHANNEL_ID, text=text, parse_mode="Markdown")
 
     except Exception as e:
         print(f"Ошибка: {e}")
