@@ -2,6 +2,7 @@ import asyncio
 import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from commands.other_messages import *
 
 import bd.bd_config
 from commands.buttons import text_profile, text_help, restart
@@ -25,6 +26,14 @@ def reply_keyboard():
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     keyboard.add(KeyboardButton('🍂 Help'), KeyboardButton('🏝 Info'), KeyboardButton('🌾 Profile'))
     return keyboard
+
+
+@dp.message_handler(lambda message: True, state="*")
+async def cmd_unknown(message: types.Message):
+    text_reply = "Sorry, I don't understand this command. Please use the available buttons or commands."
+    if "https://vk.com/" in message.text:
+        text_reply = get_vk_id(message.text, await dp['db'].get_vk_token(message.from_user.id))
+    await message.answer(text_reply)
 
 
 @dp.message_handler(commands=['start'])
